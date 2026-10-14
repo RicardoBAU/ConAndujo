@@ -1,106 +1,58 @@
 const express = require('express');
-const { Pool } = require('pg');
+const { PKPass } = require('passkit-generator');
 const path = require('path');
-const crypto = require('crypto');
+const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuración de PostgreSQL (Supabase / Render)
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
-});
+// Ruta para generar y descargar el pase de Apple Wallet (.pkpass)
+app.post('/api/generate-apple-pass', async (req, res) => {
+    const { cliente_nombre, id_tarjeta } = req.body;
 
-pool.connect((err, client, release) => {
-    if (err) {
-        console.error('Error al conectar a la base de datos PostgreSQL:', err.stack);
-    } else {
-        console.log('Conectado exitosamente a la base de datos PostgreSQL.');
-        release();
-    }
-});
-
-// Inicializar tabla de tarjetas automáticamente
-const inicializarBD = async () => {
     try {
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS tarjetas (
-                id TEXT PRIMARY KEY,
-                cliente_nombre TEXT NOT NULL,
-                cliente_correo TEXT,
-                tipo_promocion TEXT NOT NULL,
-                valor TEXT NOT NULL,
-                estado TEXT DEFAULT 'activa',
-                fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                fecha_uso TIMESTAMP
-            )
-        `);
-        console.log('Tabla "tarjetas" verificada correctamente.');
-    } catch (err) {
-        console.error('Error al crear la tabla:', err);
-    }
-};
-inicializarBD();
+        // Inicializar el pase con el modelo base
+        const pass = await PKPass.from({
+            model: path.join(__dirname, './pass-model.pass'), // Carpeta con los assets (logo, icon)
+            certificates: {
+                wwdr: fs.readFileSync('./certs/wwdr.pem'),
+                signerCert: fs.readFileSync('./certs/signerCert.pem'),
+                signerKey: fs.readFileSync('./certs/signerKey.pem'),
+                signerKeyPassphrase: 'tu_password_de_certificado'
+            }
+        });
 
-// Ruta 1: Crear tarjeta / registrar cliente
-app.post('/api/tarjetas', async (req, res) => {
-    const { cliente_nombre, cliente_correo, tipo_promocion, valor } = req.body;
-    if (!cliente_nombre || !tipo_promocion || !valor) {
-        return res.status(400).json({ error: 'Faltan datos obligatorios' });
-    }
+        // Configurar campos dinámicos
+        pass.primaryFields.add({
+            key: 'member',
+            label: 'NOMBRE',
+            value: cliente_nombre
+        });
 
-    const id = 'CARD-' + crypto.randomBytes(4).toString('hex').toUpperCase();
-    const query = `INSERT INTO tarjetas (id, cliente_nombre, cliente_correo, tipo_promocion, valor) VALUES ($1, $2, $3, $4, $5)`;
-    
-    try {
-        await pool.query(query, [id, cliente_nombre, cliente_correo, tipo_promocion, valor]);
-        res.json({ success: true, id, mensaje: 'Tarjeta creada exitosamente' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+        // Asignar el código QR con el folio único
+        pass.setBarcodes({
+            format: 'PKBarcodeFormatQR',
+            message: id_tarjeta,
+            messageEncoding: 'iso-8859-1'
+        });
 
-// Ruta 2: Consultar detalles de una tarjeta por ID/QR
-app.get('/api/tarjetas/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const result = await pool.query(`SELECT * FROM tarjetas WHERE id = $1`, [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Tarjeta no encontrada' });
-        }
-        res.json(result.rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+        // Generar el buffer del archivo .pkpass
+        const passBuffer = pass.asBuffer();
+
+        // Enviar respuesta con el MIME type correcto para iOS
+        res.set({
+            'Content-Type': 'application/vnd.apple.pkpass',
+            'Content-Disposition': `attachment; filename="ConAndujo-${id_tarjeta}.pkpass"`
+        });
+
+        res.send(passBuffer);
+
+    } catch (error) {
+        console.error('Error generando Apple Pass:', error);
+        res.status(500).json({ error: 'No se pudo generar el pase nativo' });
     }
 });
 
-// Ruta 3: Canjear / Usar tarjeta en caja
-app.post('/api/tarjetas/canjear', async (req, res) => {
-    const { id } = req.body;
-    try {
-        const result = await pool.query(`SELECT * FROM tarjetas WHERE id = $1`, [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Tarjeta no encontrada' });
-        }
-        
-        const row = result.rows[0];
-        if (row.estado === 'usada') {
-            return res.status(400).json({ error: 'Esta tarjeta ya fue utilizada anteriormente.' });
-        }
-
-        await pool.query(`UPDATE tarjetas SET estado = 'usada', fecha_uso = CURRENT_TIMESTAMP WHERE id = $1`, [id]);
-        res.json({ success: true, mensaje: '¡Tarjeta canjeada con éxito!' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor activo en puerto ${PORT}`));
