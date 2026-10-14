@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reclama tu Tarjeta de Regalo / Promoción</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-gray-900">🎁 Reclama tu Promoción</h1>
+            <p class="text-sm text-gray-500 mt-1">Ingresa tus datos para generar tu tarjeta digital instantánea.</p>
+        </div>
+
+        <form id="cardForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                <input type="text" id="nombre" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <input type="email" id="correo" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Tipo de Beneficio</label>
+                <select id="tipo" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="20% de Descuento">20% de Descuento</option>
+                    <option value="$200 MXN de Saldo">$200 MXN de Saldo (Gift Card)</option>
+                    <option value="Promoción 2x1">2x1 en Tienda</option>
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-indigo-700 transition">
+                Generar Mi Tarjeta Digital
+            </button>
+        </form>
+
+        <!-- Tarjeta Generada -->
+        <div id="cardResult" class="hidden space-y-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
+            <div class="flex justify-between items-center">
+                <span class="text-xs uppercase tracking-wider bg-white/20 px-2 py-1 rounded">Pase Digital</span>
+                <span id="cardIdText" class="font-mono text-sm"></span>
+            </div>
+            <div class="my-2">
+                <h3 id="cardBeneficio" class="text-xl font-bold"></h3>
+                <p id="cardName" class="text-sm opacity-90 mt-1"></p>
+            </div>
+            <div class="bg-white p-4 rounded-xl flex justify-center items-center">
+                <div id="qrcode"></div>
+            </div>
+            <p class="text-xs text-center opacity-75">Guarda una captura de pantalla o agrégala a tu pantalla de inicio.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('cardForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nombre').value;
+            const correo = document.getElementById('correo').value;
+            const tipo = document.getElementById('tipo').value;
+
+            const response = await fetch('/api/tarjetas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cliente_nombre: nombre, cliente_correo: correo, tipo_promocion: tipo, valor: tipo })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('cardForm').classList.add('hidden');
+                document.getElementById('cardResult').classList.remove('hidden');
+                document.getElementById('cardIdText').innerText = data.id;
+                document.getElementById('cardBeneficio').innerText = tipo;
+                document.getElementById('cardName').innerText = 'Titular: ' + nombre;
+
+                document.getElementById('qrcode').innerHTML = "";
+                new QRCode(document.getElementById('qrcode'), { text: data.id, width: 160, height: 160 });
+            } else {
+                alert('Error al generar la tarjeta: ' + data.error);
+            }
+        });
+    </script>
+</body>
+</html>
