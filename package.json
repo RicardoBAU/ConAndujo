@@ -1,5 +1,5 @@
 {
-  "name": "qr-wallet-free",
+  "name": "tarjetas-digitales-tienda",
   "version": "1.0.0",
   "description": "Sistema gratuito de tarjetas y promociones digitales con QR",
   "main": "server.js",
