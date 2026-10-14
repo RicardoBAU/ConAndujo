@@ -45,11 +45,15 @@ def register():
 
     return jsonify({'success': True, 'folio': folio})
 
+@app.route('/card/<folio>')
+def view_card(folio):
+    user = UserPass.query.filter_by(folio=folio).first_or_404()
+    return render_template('card.html', user=user)
+
 @app.route('/api/pass/<folio>', methods=['GET'])
 def generate_pkpass(folio):
     user = UserPass.query.filter_by(folio=folio).first_or_404()
     
-    # Estructura PassKit estándar para Apple Wallet
     pass_json = {
         "formatVersion": 1,
         "passTypeIdentifier": "pass.com.tarjeta.digital",
@@ -58,7 +62,7 @@ def generate_pkpass(folio):
         "description": "Tarjeta de Identificación Digital",
         "logoText": "Mi Credencial",
         "foregroundColor": "rgb(255, 255, 255)",
-        "backgroundColor": "rgb(120, 20, 30)", # Tono vino/rojo elegante similar a tu imagen
+        "backgroundColor": "rgb(120, 20, 30)",
         "labelColor": "rgb(200, 200, 200)",
         "serialNumber": user.folio,
         "barcode": {
@@ -67,24 +71,11 @@ def generate_pkpass(folio):
             "messageEncoding": "iso-8859-1"
         },
         "generic": {
-            "primaryFields": [
-                {
-                    "key": "name",
-                    "label": "NOMBRE",
-                    "value": user.name
-                }
-            ],
-            "secondaryFields": [
-                {
-                    "key": "folio",
-                    "label": "FOLIO",
-                    "value": user.folio
-                }
-            ]
+            "primaryFields": [{"key": "name", "label": "NOMBRE", "value": user.name}],
+            "secondaryFields": [{"key": "folio", "label": "FOLIO", "value": user.folio}]
         }
     }
 
-    # Generar QR en memoria
     qr = qrcode.QRCode(box_size=10, border=2)
     qr.add_data(user.folio)
     qr.make(fit=True)
@@ -93,7 +84,6 @@ def generate_pkpass(folio):
     img_qr.save(qr_io, 'PNG')
     qr_io.seek(0)
 
-    # Crear archivo ZIP (.pkpass)
     pass_io = io.BytesIO()
     with zipfile.ZipFile(pass_io, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr('pass.json', json.dumps(pass_json, indent=2))

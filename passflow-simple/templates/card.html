@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Tarjeta Digital | PassFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Contenedor Principal Estilo Tarjeta Digital -->
+    <div class="max-w-sm w-full bg-gradient-to-b from-[#fbf8f5] to-[#f4ebe6] text-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800 relative">
+        
+        <!-- Encabezado / Logo -->
+        <div class="p-6 pb-2 flex justify-between items-center">
+            <span class="text-xs font-bold tracking-widest text-red-900 uppercase">Credencial Digital</span>
+            <div class="w-10 h-10 bg-red-900 text-white rounded-full flex items-center justify-center font-black text-lg">A</div>
+        </div>
+
+        <!-- Nombre del Titular -->
+        <div class="px-6 py-4">
+            <span class="text-[10px] tracking-wider text-slate-500 font-bold uppercase block">Nombre</span>
+            <h2 class="text-2xl font-black text-red-950 mt-0.5 leading-tight">{{ user.name }}</h2>
+            <p class="text-xs text-slate-500 font-mono mt-1">Folio: {{ user.folio }}</p>
+        </div>
+
+        <!-- Sección de Código QR -->
+        <div class="bg-red-900 pt-6 pb-8 px-6 rounded-t-3xl mt-4 flex flex-col items-center shadow-inner relative">
+            <div class="bg-white p-4 rounded-2xl shadow-xl">
+                <div id="qrcode"></div>
+            </div>
+            <p class="text-[11px] text-red-200 mt-3 font-medium tracking-wide">Muestra este código en caja</p>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="max-w-sm w-full mt-6 space-y-3">
+        <a href="/api/pass/{{ user.folio }}" class="block w-full bg-black hover:bg-slate-900 border border-slate-800 text-white py-3 rounded-xl transition-all text-center font-medium text-sm flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.35c.65-.79 1.09-1.89.97-2.99-.96.04-2.13.64-2.82 1.43-.6.68-1.12 1.79-.98 2.86 1.08.08 2.18-.51 2.83-1.3z"/></svg>
+            <span>Agregar a Apple Wallet</span>
+        </a>
+        <p class="text-center text-slate-500 text-xs">💡 Sugerencia: Puedes guardar esta página en tu pantalla de inicio como acceso directo web.</p>
+    </div>
+
+    <script>
+        // Generar el QR automáticamente en la vista PWA
+        new QRCode(document.getElementById("qrcode"), {
+            text: "{{ user.folio }}",
+            width: 170,
+            height: 170
+        });
+    </script>
+</body>
+</html>
