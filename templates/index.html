@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obtén tu Tarjeta Digital</title>
+    <title>Registro | Credencial Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+<body class="bg-[#1c080a] text-slate-100 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-[#fbf8f5] text-slate-900 border border-[#e8d8d0] rounded-[32px] p-8 shadow-2xl">
         <div class="text-center mb-6">
-            <h1 class="text-xl font-bold">Registro de Tarjeta Digital</h1>
-            <p class="text-slate-400 text-xs mt-1">Ingresa tus datos para generar tu tarjeta virtual.</p>
+            <div class="w-16 h-16 bg-[#800020] text-white rounded-2xl mx-auto flex items-center justify-center font-black text-2xl shadow-md mb-3">A</div>
+            <h1 class="text-2xl font-black text-[#5c0617]">Registro de Credencial</h1>
+            <p class="text-slate-500 text-xs mt-1">Ingresa tus datos para generar tu tarjeta digital oficial.</p>
         </div>
 
         <form id="form" class="space-y-4">
             <div>
-                <label class="block text-xs font-medium text-slate-300 uppercase mb-1">Nombre Completo</label>
-                <input type="text" id="name" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nombre Completo</label>
+                <input type="text" id="name" required placeholder="Ej. Juan Pérez" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#800020]">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-300 uppercase mb-1">Correo Electrónico</label>
-                <input type="email" id="email" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Correo Electrónico</label>
+                <input type="email" id="email" required placeholder="correo@ejemplo.com" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#800020]">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-300 uppercase mb-1">Teléfono</label>
-                <input type="tel" id="phone" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Teléfono</label>
+                <input type="tel" id="phone" required placeholder="10 dígitos" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#800020]">
             </div>
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-lg transition-all">
+            <button type="submit" class="w-full bg-[#800020] hover:bg-[#600018] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg">
                 Generar Mi Tarjeta
             </button>
         </form>
